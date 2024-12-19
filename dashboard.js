@@ -35,10 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${bill.shopName}</td>
-                <td>${bill.amount}</td>
-                <td>${bill.date}</td>
-                <td><button class="deleteBillButton" data-index="${index}">Delete</button></td>
+                <td>${bill.shopName || ''}</td>
+                <td>${bill.amount || ''}</td>
+                <td>${bill.billDate || ''}</td>
+                <td><button class="deleteBillButton" data-index="${index}" data-id="${bill.id}">Delete</button></td>
             `;
             billsTableBody.appendChild(row);
         });
@@ -61,9 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${supplier.supplierName}</td>
-                <td>${supplier.supplierContact}</td>
-                <td>${supplier.supplierShop}</td>
+                <td>${supplier.supplierName || ''}</td>
+                <td>${supplier.supplierContact || ''}</td>
+                <td>${supplier.supplierShop || ''}</td>
                 <td><button class="deleteSupplierButton" data-index="${index}">Delete</button></td>
             `;
             suppliersTableBody.appendChild(row);
@@ -94,9 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${bill.shopName}</td>
-                <td>${bill.amount}</td>
-                <td>${bill.date}</td>
+                <td>${bill.shopName || ''}</td>
+                <td>${bill.amount || ''}</td>
+                <td>${bill.billDate || ''}</td>
             `;
             searchResults.appendChild(row);
         });
