@@ -5,27 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bill Management Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-logo">DASHBOARD</div>
+    </header>
+
     <div class="dashboard-container">
+        <!-- Sidebar -->
         <div class="sidebar">
             <h2>Menu</h2>
             <ul>
-                <li><a href="#" id="viewBills">View Bills</a></li>
-                <li><a href="#" id="searchBills">Search Bills</a></li>
-                <li><a href="#" id="addSupplier">Add Supplier</a></li>
-                <li><a href="#" id="viewSuppliers">View Suppliers</a></li>
-                <li><a href="#" id="showTotals">Show Totals</a></li>
-                <li><a href="#" id="addBillButton">Add New Bill</a></li>
-                <li><a href="#" id="logoutButton">Logout</a></li>
+                <li><a href="#" id="viewBills" class="active">
+                    <span>View Bills</span>
+                </a></li>
+                <li><a href="#" id="searchBills">
+                    <span>Search Bills</span>
+                </a></li>
+                <li><a href="#" id="addSupplier">
+                    <span>Add Supplier</span>
+                </a></li>
+                <li><a href="#" id="viewSuppliers">
+                    <span>View Suppliers</span>
+                </a></li>
+                <li><a href="#" id="showTotals">
+                    <span>Show Totals</span>
+                </a></li>
+                <li><a href="#" id="addBillButton">
+                    <span>Add New Bill</span>
+                </a></li>
+                <li><a href="#" id="logoutButton">
+                    <span>Logout</span>
+                </a></li>
             </ul>
         </div>
-        <div class="main-content">
-            <h1>Welcome to the Bill Management Dashboard</h1>
 
-            <!-- Bill Section -->
-            <div class="bill-section" id="billSection">
-                <h2>Your Bills</h2>
+        <!-- Main Content -->
+        <div class="main-content">
+                        <!-- Bill Section -->
+            <div class="card bill-section" id="billSection">
+                <div class="card-header">
+                    <h2 class="card-title">Your Bills</h2>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -33,6 +56,7 @@
                             <th>Shop Name</th>
                             <th>Amount</th>
                             <th>Bill Date</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -43,15 +67,29 @@
             </div>
 
             <!-- Totals Section -->
-            <div class="totals-section" id="totalsSection" style="display:none;">
-                <h2>Bill Totals</h2>
-                <p id="totalAmount"></p>
+            <div class="card totals-section" id="totalsSection" style="display:none;">
+                <div class="card-header">
+                    <h2 class="card-title">Bill Totals</h2>
+                </div>
+                <div class="card-content">
+                    <p id="totalAmount" class="text-xl font-bold"></p>
+                </div>
             </div>
 
             <!-- Search Section -->
-            <div class="search-section" id="searchSection" style="display:none;">
-                <h2>Search Bills</h2>
-                <input type="text" id="searchInput" placeholder="Search by shop name...">
+            <div class="card search-section" id="searchSection" style="display:none;">
+                <div class="card-header">
+                    <h2 class="card-title">Search Bills</h2>
+                </div>
+                <div class="search-controls">
+                    <input type="text" class="search-input" placeholder="Search bills...">
+                    <select class="filter-select">
+                        <option>Filter by date</option>
+                        <option>Last 7 days</option>
+                        <option>Last 30 days</option>
+                        <option>Last 90 days</option>
+                    </select>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -68,32 +106,48 @@
             </div>
 
             <!-- Add Bill Section -->
-            <div class="add-bill-section" id="addBillSection" style="display:none;">
-                <h2>Add New Bill</h2>
-                <form id="addBillForm">
-                    <label for="shopName">Shop Name:</label>
-                    <input type="text" id="shopName" name="shopName" required>
-
-                    <h3>Items</h3>
-                    <div id="itemsSection">
-                        <!-- Dynamically added items go here -->
+            <div class="card add-bill-section" id="addBillSection" style="display:none;">
+                <div class="card-header">
+                    <h2 class="card-title">Add New Bill</h2>
+                </div>
+                <form id="addBillForm" class="card-content">
+                    <div class="form-group">
+                        <label for="shopName">Shop Name:</label>
+                        <input type="text" id="shopName" name="shopName" required>
                     </div>
-                    <button type="button" id="addMoreItemsButton">Add More Items</button>
 
-                    <label for="amount">Amount:</label>
-                    <input type="number" id="amount" name="amount" required>
+                    <div class="form-group">
+                        <h3>Items</h3>
+                        <div id="itemsSection">
+                            <!-- Dynamically added items go here -->
+                        </div>
+                        <button type="button" id="addMoreItemsButton" class="action-button">Add More Items</button>
+                    </div>
 
-                    <label for="paidBy">Paid By:</label>
-                    <input type="text" id="paidBy" name="paidBy" required>
+                    <div class="form-group">
+                        <label for="amount">Amount:</label>
+                        <input type="number" id="amount" name="amount" required>
+                    </div>
 
-                    <label for="returnPaidBy">Return Paid By:</label>
-                    <input type="text" id="returnPaidBy" name="returnPaidBy" required>
+                    <div class="form-group">
+                        <label for="paidBy">Paid By:</label>
+                        <input type="text" id="paidBy" name="paidBy" required>
+                    </div>
 
-                    <label for="billImage">Bill Image:</label>
-                    <input type="file" id="billImage" name="billImage" accept="image/*" required>
+                    <div class="form-group">
+                        <label for="returnPaidBy">Return Paid By:</label>
+                        <input type="text" id="returnPaidBy" name="returnPaidBy" required>
+                    </div>
 
-                    <label for="billDate">Bill Date:</label>
-                    <input type="date" id="billDate" name="billDate" required>
+                    <div class="form-group">
+                        <label for="billImage">Bill Image:</label>
+                        <input type="file" id="billImage" name="billImage" accept="image/*" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="billDate">Bill Date:</label>
+                        <input type="date" id="billDate" name="billDate" required>
+                    </div>
 
                     <button type="submit" id="submitButton">Add Bill</button>
                     <div id="loadingSpinnerBill" class="spinner" style="display:none;"></div>
@@ -101,20 +155,30 @@
             </div>
 
             <!-- Add Supplier Section -->
-            <div class="add-supplier-section" id="addSupplierSection" style="display:none;">
-                <h2>Add New Supplier</h2>
-                <form id="addSupplierForm">
-                    <label for="supplierName">Supplier Name:</label>
-                    <input type="text" id="supplierName" name="supplierName" required>
+            <div class="card add-supplier-section" id="addSupplierSection" style="display:none;">
+                <div class="card-header">
+                    <h2 class="card-title">Add New Supplier</h2>
+                </div>
+                <form id="addSupplierForm" class="card-content">
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name:</label>
+                        <input type="text" id="supplierName" name="supplierName" required>
+                    </div>
 
-                    <label for="supplierContact">Supplier Contact:</label>
-                    <input type="text" id="supplierContact" name="supplierContact" required>
+                    <div class="form-group">
+                        <label for="supplierContact">Supplier Contact:</label>
+                        <input type="text" id="supplierContact" name="supplierContact" required>
+                    </div>
 
-                    <label for="supplierShop">Supplier Shop Name:</label>
-                    <input type="text" id="supplierShop" name="supplierShop" required>
+                    <div class="form-group">
+                        <label for="supplierShop">Supplier Shop Name:</label>
+                        <input type="text" id="supplierShop" name="supplierShop" required>
+                    </div>
 
-                    <label for="supplierAddress">Address (Google Map Link):</label>
-                    <input type="text" id="supplierAddress" name="supplierAddress" required>
+                    <div class="form-group">
+                        <label for="supplierAddress">Address (Google Map Link):</label>
+                        <input type="text" id="supplierAddress" name="supplierAddress" required>
+                    </div>
 
                     <button type="submit">Add Supplier</button>
                     <div id="loadingSpinnerSupplier" class="spinner" style="display:none;"></div>
@@ -122,8 +186,10 @@
             </div>
 
             <!-- View Suppliers Section -->
-            <div class="supplier-section" id="supplierSection" style="display:none;">
-                <h2>Your Suppliers</h2>
+            <div class="card supplier-section" id="supplierSection" style="display:none;">
+                <div class="card-header">
+                    <h2 class="card-title">Your Suppliers</h2>
+                </div>
                 <table>
                     <thead>
                         <tr>
