@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${bill.shopName || ''}</td>
+                <td>${bill.paidBy || ''}</td>
+                <td>${bill.returnPaidBy || ''}</td>
                 <td>${bill.amount || ''}</td>
                 <td>${bill.billDate || ''}</td>
                 <td><button class="deleteBillButton" data-index="${index}" data-id="${bill.id}">Delete</button></td>
@@ -64,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${supplier.supplierName || ''}</td>
                 <td>${supplier.supplierContact || ''}</td>
                 <td>${supplier.supplierShop || ''}</td>
+                <td>${supplier.supplierAddress || ''}</td>
                 <td><button class="deleteSupplierButton" data-index="${index}">Delete</button></td>
             `;
             suppliersTableBody.appendChild(row);
