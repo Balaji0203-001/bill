@@ -1,277 +1,179 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const logoutButton = document.getElementById('logoutButton');
-    const addBillButton = document.getElementById('addBillButton');
-    const viewBillsButton = document.getElementById('viewBills');
-    const searchBillsButton = document.getElementById('searchBills');
-    const addSupplierButton = document.getElementById('addSupplier');
-    const showTotalsButton = document.getElementById('showTotals');
-    const viewSuppliersButton = document.getElementById('viewSuppliers');
-    const billSection = document.getElementById('billSection');
-    const totalsSection = document.getElementById('totalsSection');
-    const searchSection = document.getElementById('searchSection');
-    const supplierSection = document.getElementById('supplierSection');
-    const addBillSection = document.getElementById('addBillSection');
-    const addSupplierSection = document.getElementById('addSupplierSection');
-    const billsTableBody = document.getElementById('billsTableBody');
-    const suppliersTableBody = document.getElementById('suppliersTableBody');
-    const totalAmount = document.getElementById('totalAmount');
-    const searchInput = document.getElementById('searchInput');
-    const searchResults = document.getElementById('searchResults');
-    const addBillForm = document.getElementById('addBillForm');
-    const addSupplierForm = document.getElementById('addSupplierForm');
-    const itemsSection = document.getElementById('itemsSection');
-    const loadingSpinnerBill = document.getElementById('loadingSpinnerBill');
-    const loadingSpinnerSupplier = document.getElementById('loadingSpinnerSupplier');
-    const billImageInput = document.getElementById('billImage');
+const baseUrl = 'https://script.google.com/macros/s/AKfycbzCG3VDVwpdXnoePQuY6WPOW3zkV3X5Qrz4zsWQzc3Z08ZFJI0-rUvOHYS5Nc_YV9dL/exec'; // Replace with your actual deployed script URL
 
-    let bills = JSON.parse(localStorage.getItem('bills')) || [];
-    let suppliers = JSON.parse(localStorage.getItem('suppliers')) || [];
-    let items = [];
+// Function to fetch and display bills and suppliers
+function fetchBillsAndSuppliers() {
+  fetch(`${baseUrl}`)
+    .then(response => response.json())
+    .then(data => {
+      // Update the bills and suppliers tables dynamically
+      updateBillsTable(data.bills);
+      updateSuppliersTable(data.suppliers);
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+}
 
-    // Function to render Bills
-    const renderBills = () => {
-        billsTableBody.innerHTML = '';
-        bills.forEach((bill, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${bill.shopName || ''}</td>
-                <td>${bill.paidBy || ''}</td>
-                <td>${bill.returnPaidBy || ''}</td>
-                <td>${bill.amount || ''}</td>
-                <td>${bill.billDate || ''}</td>
-                <td><button class="deleteBillButton" data-index="${index}" data-id="${bill.id}">Delete</button></td>
-            `;
-            billsTableBody.appendChild(row);
-        });
+// Function to update the bills table
+function updateBillsTable(bills) {
+  const billsTableBody = document.getElementById('billsTableBody');
+  billsTableBody.innerHTML = ''; // Clear existing bills
 
-        // Delete Bill button functionality
-        document.querySelectorAll('.deleteBillButton').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const billIndex = e.target.getAttribute('data-index');
-                bills.splice(billIndex, 1);
-                localStorage.setItem('bills', JSON.stringify(bills));
-                renderBills();
-            });
-        });
+  bills.forEach(bill => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${bill.billId}</td>
+      <td>${bill.shopName}</td>
+      <td>${bill.paidBy}</td>
+      <td>${bill.returnPaidBy}</td>
+      <td>${bill.amount}</td>
+      <td>${bill.billDate}</td>
+      <td><button class="view-button" onclick="viewBillImage('${bill.billImage}')">View Image</button></td>
+    `;
+    billsTableBody.appendChild(row);
+  });
+}
+
+// Function to update the suppliers table
+function updateSuppliersTable(suppliers) {
+  const suppliersTableBody = document.getElementById('suppliersTableBody');
+  suppliersTableBody.innerHTML = ''; // Clear existing suppliers
+
+  suppliers.forEach(supplier => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${supplier.supplierId}</td>
+      <td>${supplier.supplierName}</td>
+      <td>${supplier.supplierContact}</td>
+      <td>${supplier.supplierShop}</td>
+      <td><a href="${supplier.supplierAddress}" target="_blank">View Address</a></td>
+      <td><button class="delete-button" onclick="deleteSupplier('${supplier.supplierId}')">Delete</button></td>
+    `;
+    suppliersTableBody.appendChild(row);
+  });
+}
+
+// Function to add a new bill
+function addBill(event) {
+  event.preventDefault();
+  const formData = new FormData(document.getElementById('addBillForm'));
+  formData.append('type', 'bill'); // Indicate that it's a bill
+
+  const fileInput = document.getElementById('billImage');
+  if (fileInput.files.length > 0) {
+    const reader = new FileReader();
+    reader.onloadend = function () {
+      const base64Image = reader.result.split(',')[1]; // Get the base64 image string
+      formData.append('base64Image', base64Image);
+      formData.append('imageName', fileInput.files[0].name);
+      formData.append('imageType', fileInput.files[0].type);
+
+      sendBillData(formData); // Send the data
     };
+    reader.readAsDataURL(fileInput.files[0]);  // Read the image as base64
+  } else {
+    sendBillData(formData); // Send without image
+  }
+}
 
-    // Function to render Suppliers
-    const renderSuppliers = () => {
-        suppliersTableBody.innerHTML = '';
-        suppliers.forEach((supplier, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${supplier.supplierName || ''}</td>
-                <td>${supplier.supplierContact || ''}</td>
-                <td>${supplier.supplierShop || ''}</td>
-                <td>${supplier.supplierAddress || ''}</td>
-                <td><button class="deleteSupplierButton" data-index="${index}">Delete</button></td>
-            `;
-            suppliersTableBody.appendChild(row);
-        });
+// Function to send bill data to Google Apps Script
+function sendBillData(formData) {
+  document.getElementById('loadingSpinnerBill').style.display = 'block'; // Show loading spinner
 
-        // Delete Supplier button functionality
-        document.querySelectorAll('.deleteSupplierButton').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const supplierIndex = e.target.getAttribute('data-index');
-                suppliers.splice(supplierIndex, 1);
-                localStorage.setItem('suppliers', JSON.stringify(suppliers));
-                renderSuppliers();
-            });
-        });
-    };
+  fetch(baseUrl, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.text())
+  .then(result => {
+    document.getElementById('loadingSpinnerBill').style.display = 'none'; // Hide loading spinner
+    alert(result); // Notify the user
+    fetchBillsAndSuppliers(); // Refresh the data after adding the bill
+  })
+  .catch(error => {
+    document.getElementById('loadingSpinnerBill').style.display = 'none';
+    console.error('Error adding bill:', error);
+  });
+}
 
-    // Function to calculate and show the total amount of the bills
-    const calculateTotal = () => {
-        const total = bills.reduce((sum, bill) => sum + parseFloat(bill.amount), 0);
-        totalAmount.textContent = `Total Amount: $${total.toFixed(2)}`;
-    };
+// Function to add a new supplier
+function addSupplier(event) {
+  event.preventDefault();
+  const formData = new FormData(document.getElementById('addSupplierForm'));
+  formData.append('type', 'supplier'); // Indicate that it's a supplier
 
-    // Function to search bills
-    const searchBills = (query) => {
-        searchResults.innerHTML = '';
-        const filteredBills = bills.filter(bill => bill.shopName.toLowerCase().includes(query.toLowerCase()));
-        filteredBills.forEach((bill, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${bill.shopName || ''}</td>
-                <td>${bill.amount || ''}</td>
-                <td>${bill.billDate || ''}</td>
-            `;
-            searchResults.appendChild(row);
-        });
-    };
+  fetch(baseUrl, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.text())
+  .then(result => {
+    alert(result);  // Notify the user that the supplier was added successfully
+    fetchBillsAndSuppliers();  // Refresh the data after adding the supplier
+  })
+  .catch(error => {
+    console.error('Error adding supplier:', error);
+  });
+}
 
-    // Handle navigation between sections
-    logoutButton.addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
+// Function to view the bill image
+function viewBillImage(imageUrl) {
+  window.open(imageUrl, '_blank');
+}
 
-    addBillButton.addEventListener('click', () => {
-        billSection.style.display = 'none';
-        totalsSection.style.display = 'none';
-        searchSection.style.display = 'none';
-        supplierSection.style.display = 'none';
-        addBillSection.style.display = 'block';
-        addSupplierSection.style.display = 'none';
-    });
+// Function to delete a supplier (implementation may vary depending on your Apps Script setup)
+function deleteSupplier(supplierId) {
+  if (confirm('Are you sure you want to delete this supplier?')) {
+    fetch(`${baseUrl}?delete=true&supplierId=${supplierId}`)
+      .then(response => response.text())
+      .then(result => {
+        alert(result);  // Notify the user that the supplier was deleted
+        fetchBillsAndSuppliers();  // Refresh the data
+      })
+      .catch(error => {
+        console.error('Error deleting supplier:', error);
+      });
+  }
+}
 
-    viewBillsButton.addEventListener('click', () => {
-        billSection.style.display = 'block';
-        totalsSection.style.display = 'none';
-        searchSection.style.display = 'none';
-        supplierSection.style.display = 'none';
-        addBillSection.style.display = 'none';
-        addSupplierSection.style.display = 'none';
-    });
+// Function to switch between sections (show/hide content)
+function showSection(sectionId) {
+  const sections = document.querySelectorAll('.card');
+  sections.forEach(section => {
+    section.style.display = 'none';  // Hide all sections
+  });
 
-    viewSuppliersButton.addEventListener('click', () => {
-        billSection.style.display = 'none';
-        totalsSection.style.display = 'none';
-        searchSection.style.display = 'none';
-        supplierSection.style.display = 'block';
-        addBillSection.style.display = 'none';
-        addSupplierSection.style.display = 'none';
-    });
+  document.getElementById(sectionId).style.display = 'block'; // Show the selected section
+}
 
-    showTotalsButton.addEventListener('click', () => {
-        calculateTotal();
-        billSection.style.display = 'none';
-        totalsSection.style.display = 'block';
-        searchSection.style.display = 'none';
-        supplierSection.style.display = 'none';
-        addBillSection.style.display = 'none';
-        addSupplierSection.style.display = 'none';
-    });
+// Function to initialize the page and setup event listeners
+function initialize() {
+  fetchBillsAndSuppliers(); // Fetch the data when the page loads
 
-    searchBillsButton.addEventListener('click', () => {
-        billSection.style.display = 'none';
-        totalsSection.style.display = 'none';
-        searchSection.style.display = 'block';
-        supplierSection.style.display = 'none';
-        addBillSection.style.display = 'none';
-        addSupplierSection.style.display = 'none';
-    });
+  // Event listeners for menu items
+  document.getElementById('viewBills').addEventListener('click', () => {
+    showSection('billSection'); // Show bills section
+  });
 
-    addSupplierButton.addEventListener('click', () => {
-        billSection.style.display = 'none';
-        totalsSection.style.display = 'none';
-        searchSection.style.display = 'none';
-        supplierSection.style.display = 'none';
-        addBillSection.style.display = 'none';
-        addSupplierSection.style.display = 'block';
-    });
+  document.getElementById('viewSuppliers').addEventListener('click', () => {
+    showSection('supplierSection'); // Show suppliers section
+  });
 
-    // Function to add new item
-    document.getElementById('addMoreItemsButton').addEventListener('click', () => {
-        const itemName = prompt("Enter Item Name:");
-        const itemQuantity = prompt("Enter Quantity:");
-        const itemPrice = prompt("Enter Price per Item:");
+  document.getElementById('addBillButton').addEventListener('click', () => {
+    showSection('addBillSection'); // Show add bill form
+  });
 
-        if (itemName && itemQuantity && itemPrice) {
-            const totalAmount = itemQuantity * itemPrice;
+  document.getElementById('addSupplier').addEventListener('click', () => {
+    showSection('addSupplierSection'); // Show add supplier form
+  });
 
-            // Store the item in the items array
-            items.push({ itemName, itemQuantity, itemPrice, totalAmount });
+  // Event listeners for form submissions
+  document.getElementById('addBillForm').addEventListener('submit', addBill);
+  document.getElementById('addSupplierForm').addEventListener('submit', addSupplier);
 
-            // Update the total amount for the bill
-            updateTotalAmount();
-        } else {
-            alert("Please provide valid details for the item.");
-        }
-    });
+  // Initial section visibility
+  showSection('billSection'); // Default section to show
+}
 
-    // Function to update the total amount of the bill
-    const updateTotalAmount = () => {
-        let totalAmount = 0;
-        items.forEach(item => {
-            totalAmount += item.totalAmount;
-        });
-        document.getElementById('amount').value = totalAmount; // Update the Amount field
-    };
-
-    // Function to convert image file to base64 string
-    const getBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = error => reject(error);
-        });
-    };
-
-    // Add Supplier Form Submission
-    addSupplierForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        loadingSpinnerSupplier.style.display = 'block'; // Show loading spinner
-
-        const formData = new FormData(e.target);
-        formData.append('type', 'supplier');
-
-        fetch('https://script.google.com/macros/s/AKfycbzCG3VDVwpdXnoePQuY6WPOW3zkV3X5Qrz4zsWQzc3Z08ZFJI0-rUvOHYS5Nc_YV9dL/exec', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.text())
-        .then(data => {
-            alert(data);
-            suppliers.push(Object.fromEntries(formData)); // Add the new supplier to the list
-            localStorage.setItem('suppliers', JSON.stringify(suppliers)); // Save to localStorage
-            renderSuppliers(); // Re-render the suppliers list
-            e.target.reset();
-            loadingSpinnerSupplier.style.display = 'none'; // Hide loading spinner
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            loadingSpinnerSupplier.style.display = 'none'; // Hide loading spinner if there's an error
-        });
-    });
-
-    // Add Bill Form Submission
-    addBillForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        loadingSpinnerBill.style.display = 'block'; // Show loading spinner
-
-        const formData = new FormData(e.target);
-        formData.append('type', 'bill');
-
-        // Add items to formData as a single string with newline characters
-        const itemsString = items.map(item => `Name: ${item.itemName}, Qty: ${item.itemQuantity}, Price: ${item.itemPrice}, Total: ${item.totalAmount}`).join('\n');
-        formData.append('items', itemsString);
-
-        // Handle the image file input
-        const file = billImageInput.files[0];
-        if (file) {
-            const base64Image = await getBase64(file);
-            formData.append('base64Image', base64Image);
-            formData.append('imageName', file.name);
-            formData.append('imageType', file.type);
-        }
-
-        // Send form data to the server
-        fetch('https://script.google.com/macros/s/AKfycbzCG3VDVwpdXnoePQuY6WPOW3zkV3X5Qrz4zsWQzc3Z08ZFJI0-rUvOHYS5Nc_YV9dL/exec', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.text())
-        .then(data => {
-            alert(data);
-            bills.push(Object.fromEntries(formData)); // Add the new bill to the list
-            localStorage.setItem('bills', JSON.stringify(bills)); // Save to localStorage
-            renderBills(); // Re-render the bills list
-            e.target.reset();
-            items = []; // Reset items array
-            loadingSpinnerBill.style.display = 'none'; // Hide loading spinner
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            loadingSpinnerBill.style.display = 'none'; // Hide loading spinner if there's an error
-        });
-    });
-
-    renderBills();
-    renderSuppliers();
-});
+// Run the initialization when the page is ready
+window.addEventListener('DOMContentLoaded', initialize);
